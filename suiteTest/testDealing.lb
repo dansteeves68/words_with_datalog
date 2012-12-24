@@ -1,0 +1,92 @@
+transaction
+exec <doc>
+   _numTilesInBag[] = num
+   <-
+      agg<<num = count()>>
+      tile:inBag(_).
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Must start with 105 tiles in the bag"
+   <-
+      _numTilesInBag[] != 105.
+   
+   _numTilesInHands[] = num
+   <-
+      agg<<num = count()>>
+      player:tileInHand(_, _).
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Must start with 0 tiles in hands"
+   <-
+      _numTilesInHands[] != 0.
+</doc>
+commit
+
+transaction
+exec '+deal[] = 1 <- .'
+commit
+transaction
+exec '+deal[] = 1 <- .'
+commit
+transaction
+exec '+deal[] = 1 <- .'
+commit
+transaction
+exec '+deal[] = 1 <- .'
+commit
+transaction
+exec '+deal[] = 1 <- .'
+commit
+transaction
+exec '+deal[] = 1 <- .'
+commit
+transaction
+exec '+deal[] = 1 <- .'
+commit
+
+transaction
+exec '+deal[] = 2 <- .'
+commit
+transaction
+exec '+deal[] = 2 <- .'
+commit
+transaction
+exec '+deal[] = 2 <- .'
+commit
+transaction
+exec '+deal[] = 2 <- .'
+commit
+transaction
+exec '+deal[] = 2 <- .'
+commit
+transaction
+exec '+deal[] = 2 <- .'
+commit
+transaction
+exec '+deal[] = 2 <- .'
+commit
+
+transaction
+exec <doc>
+   _numTilesInBag[] = num
+   <-
+      agg<<num = count()>>
+      tile:inBag(_).
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Must finish with 91 tiles in the bag"
+   <-
+      _numTilesInBag[] != 91.
+   
+   _numTilesInHands[p] = num
+   <-
+      agg<<num = count()>>
+      player:tileInHand(p, _).
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Must finish with 7 tiles in hands"
+   <-
+      _numTilesInHands[_] != 7.
+</doc>
+commit
+

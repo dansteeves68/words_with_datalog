@@ -1,0 +1,117 @@
+transaction
+exec <doc>
+   +letter(l),
+   +letter:letter[l] = letter,
+   +letter:value[l] = value,
+   +tile(x),
+   +tile:num(x: num),
+   +tile:inBag(x),
+   +tile:letter(x, l)
+   <-
+      (num =   1, letter = "blank", value = 0);
+      (num =   2, letter = "blank", value = 0);
+      (num =   3, letter = "e", value = 1);
+      (num =   4, letter = "e", value = 1);
+      (num =   5, letter = "e", value = 1);
+      (num =   6, letter = "e", value = 1);
+      (num =   7, letter = "e", value = 1);
+      (num =   8, letter = "e", value = 1);
+      (num =   9, letter = "e", value = 1);
+      (num =   0, letter = "e", value = 1);
+      (num =  11, letter = "e", value = 1);
+      (num =  12, letter = "e", value = 1);
+      (num =  13, letter = "e", value = 1);
+      (num =  14, letter = "e", value = 1);
+      (num =  15, letter = "e", value = 1);
+      (num =  16, letter = "a", value = 1);
+      (num =  17, letter = "a", value = 1);
+      (num =  18, letter = "a", value = 1);
+      (num =  19, letter = "a", value = 1);
+      (num =  20, letter = "a", value = 1);
+      (num =  21, letter = "a", value = 1);
+      (num =  22, letter = "a", value = 1);
+      (num =  23, letter = "a", value = 1);
+      (num =  24, letter = "a", value = 1);
+      (num =  25, letter = "i", value = 1);
+      (num =  26, letter = "i", value = 1);
+      (num =  27, letter = "i", value = 1);
+      (num =  28, letter = "i", value = 1);
+      (num =  29, letter = "i", value = 1);
+      (num =  30, letter = "i", value = 1);
+      (num =  31, letter = "i", value = 1);
+      (num =  32, letter = "i", value = 1);
+      (num =  33, letter = "o", value = 1);
+      (num =  34, letter = "o", value = 1);
+      (num =  35, letter = "o", value = 1);
+      (num =  36, letter = "o", value = 1);
+      (num =  37, letter = "o", value = 1);
+      (num =  38, letter = "o", value = 1);
+      (num =  39, letter = "o", value = 1);
+      (num =  40, letter = "o", value = 1);
+      (num =  41, letter = "t", value = 1);
+      (num =  42, letter = "t", value = 1);
+      (num =  43, letter = "t", value = 1);
+      (num =  44, letter = "t", value = 1);
+      (num =  45, letter = "t", value = 1);
+      (num =  46, letter = "t", value = 1);
+      (num =  47, letter = "t", value = 1);
+      (num =  48, letter = "r", value = 1);
+      (num =  49, letter = "r", value = 1);
+      (num =  50, letter = "r", value = 1);
+      (num =  51, letter = "r", value = 1);
+      (num =  52, letter = "r", value = 1);
+      (num =  53, letter = "r", value = 1);
+      (num =  54, letter = "s", value = 1);
+      (num =  55, letter = "s", value = 1);
+      (num =  56, letter = "s", value = 1);
+      (num =  57, letter = "s", value = 1);
+      (num =  58, letter = "s", value = 1);
+      (num =  59, letter = "s", value = 1);
+      (num =  60, letter = "d", value = 2);
+      (num =  61, letter = "d", value = 2);
+      (num =  62, letter = "d", value = 2);
+      (num =  63, letter = "d", value = 2);
+      (num =  64, letter = "d", value = 2);
+      (num =  65, letter = "n", value = 2);
+      (num =  66, letter = "n", value = 2);
+      (num =  67, letter = "n", value = 2);
+      (num =  68, letter = "n", value = 2);
+      (num =  69, letter = "n", value = 2);
+      (num =  70, letter = "l", value = 2);
+      (num =  71, letter = "l", value = 2);
+      (num =  72, letter = "l", value = 2);
+      (num =  73, letter = "l", value = 2);
+      (num =  74, letter = "u", value = 2);
+      (num =  75, letter = "u", value = 2);
+      (num =  76, letter = "u", value = 2);
+      (num =  77, letter = "u", value = 2);
+      (num =  78, letter = "h", value = 3);
+      (num =  79, letter = "h", value = 3);
+      (num =  80, letter = "h", value = 3);
+      (num =  81, letter = "h", value = 3);
+      (num =  82, letter = "g", value = 3);
+      (num =  83, letter = "g", value = 3);
+      (num =  84, letter = "g", value = 3);
+      (num =  85, letter = "y", value = 3);
+      (num =  86, letter = "y", value = 3);
+      (num =  87, letter = "b", value = 4);
+      (num =  88, letter = "b", value = 4);
+      (num =  89, letter = "c", value = 4);
+      (num =  90, letter = "c", value = 4);
+      (num =  91, letter = "f", value = 4);
+      (num =  92, letter = "f", value = 4);
+      (num =  93, letter = "m", value = 4);
+      (num =  94, letter = "m", value = 4);
+      (num =  95, letter = "p", value = 4);
+      (num =  96, letter = "p", value = 4);
+      (num =  97, letter = "w", value = 4);
+      (num =  98, letter = "w", value = 4);
+      (num =  99, letter = "v", value = 5);
+      (num = 100, letter = "v", value = 5);
+      (num = 101, letter = "k", value = 5);
+      (num = 102, letter = "x", value = 8);
+      (num = 103, letter = "j", value = 10);
+      (num = 104, letter = "q", value = 10);
+      (num = 105, letter = "z", value = 10).
+</doc>
+commit

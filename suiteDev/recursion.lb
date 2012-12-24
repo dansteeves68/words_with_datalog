@@ -1,0 +1,48 @@
+transaction
+addBlock --blockName setup <doc>
+   position(x) -> int[32](x).
+   positionsInWord(x) -> int[32](x).
+   letter[x] = y -> int[32](x), string(y).
+   leadPosition[] = x -> int[32](x).
+   positionAhead[x] = y -> int[32](x), int[32](y).
+
+   positionsInWord(x)
+   <-
+      (
+         x = leadPosition[]
+      )
+      ;
+      (
+         positionAhead[x] = x_,
+         positionsInWord(x_)
+      ).
+</doc>
+exec <doc>
+   +position(-7) <- .
+   +position(-6) <- .
+   +position(-5) <- .
+   +position(-4) <- .
+   +position(-3) <- .
+   +position(-2) <- .
+   +position(-1) <- .
+   +position(0) <- .
+   +position(1) <- .
+   +position(2) <- .
+   +position(3) <- .
+   +position(4) <- .
+   +position(5) <- .
+   +position(6) <- .
+   +position(7) <- .
+   +letter[-4] = "w" <- .
+   +letter[-3] = "o" <- .
+   +letter[-2] = "r" <- .
+   +letter[-1] = "d" <- .
+   +leadPosition[] = -4 <- .
+   +positionsInWord(-4) <- .
+   +positionAhead[-3] = -4 <- .
+   +positionAhead[-2] = -3 <- .
+   +positionAhead[-1] = -2 <- .
+</doc>
+commit
+
+query positionsInWord

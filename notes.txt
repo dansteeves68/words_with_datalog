@@ -1,0 +1,81 @@
+# Tile Placement:
+
+- The first word must be placed so that 1 of the tiles is on the star in the
+  center of the board.
+
+- Every word following that must be placed so that at least 1 tile is shared
+  from an existing word on the board.
+
+- Tiles can only be placed in the same line vertically or horizontally each
+  turn.
+
+- Tiles can be placed so that multiple new words are formed simultaneously
+  using neighboring letters.
+
+- Words cannot be placed if they create an illegal word using neighboring
+  letters.
+
+- All words labelled as a part of speech (including those listed of foreign
+  origin, and as archaic, obsolete, colloquial, slang, etc.) are permitted
+  with the exception of the following: proper nouns (words always
+  capitalized), abbreviations, prefixes and suffixes standing alone or words
+  requiring a hyphen or an apostrophe.
+
+# Scoring: 
+
+- Double the value of any tiles that were played this turn on a DL space, and
+  triple the value of any tile that was played on a TL space this turn.
+
+- Do not double the value of tiles on DL and TL spaces for tiles that were
+  played on previous rounds.
+
+- Add up the values of all letters in the word, even if some were played on a
+  previous turn.
+
+- Double the value of the word if any tiles this turn were played on a DW
+  space (and double it again in the case were 2 DW spaces were played upon).
+
+- Triple the value of the word if any tiles this turn were played on a TW
+  space (and triple it again if 2 TW spaces were used).
+
+- Do not multiply words if tiles on DW or TW spaces were used from a previous
+  turn.
+
+- It is possible to create multiple words with the same play.
+
+- In this case, score each new word separately, including bonuses, and sum all
+  of the new words together.
+
+- 35 bonus points are awarded whenever a player uses all 7 tiles on their rack
+  in a single turn.
+
+# End Game: 
+
+- The game ends when one player plays every tile in his rack, and there are no
+  tiles remaining to draw from.
+
+- The game could also end if three successive turns have occurred with no
+  scoring and as long as the score is not zero-zero.
+
+- After the last tile is played, the opposing player will lose points equal to
+  the sum of the value of his remaining tiles. This amount is then awarded to
+  the player who placed the last tile.
+
+# Board #
+
+    in|-7|-6|-5|-4|-3|-2|-1|+0|+1|+2|+3|+4|+5|+6|+7
+    +7|  |  |  |TW|  |  |TL|  |TL|  |  |TW|  |  |
+    +6|  |  |DL|  |  |DW|  |  |  |DW|  |  |DL|  |
+    +5|  |DL|  |  |DL|  |  |  |  |  |DL|  |  |DL|
+    +4|TW|  |  |TL|  |  |  |DW|  |  |  |TL|  |  |TW
+    +3|  |  |DL|  |  |  |DL|  |DL|  |  |  |DL|  |
+    +2|  |DW|  |  |  |TL|  |  |  |TL|  |  |  |DW|
+    +1|TL|  |  |  |DL|  |  |  |  |  |DL|  |  |  |TL
+    +0|  |  |  |DW|  |  |  |ST|  |  |  |DW|  |  |
+    -1|TL|  |  |  |DL|  |  |  |  |  |DL|  |  |  |TL
+    -2|  |DW|  |  |  |TL|  |  |  |TL|  |  |  |DW|
+    -3|  |  |DL|  |  |  |DL|  |DL|  |  |  |DL|  |
+    -4|TW|  |  |TL|  |  |  |DW|  |  |  |TL|  |  |TW
+    -5|  |DL|  |  |DL|  |  |  |  |  |DL|  |  |DL|
+    -6|  |  |DL|  |  |DW|  |  |  |DW|  |  |DL|  |
+    -7|  |  |  |TW|  |  |TL|  |TL|  |  |TW|  |  |

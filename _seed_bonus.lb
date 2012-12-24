@@ -1,0 +1,102 @@
+transaction
+exec <doc>
+   +bonusWord(b),
+   +bonusWord:name(b: "None"),
+   +bonusWord:multiplier[b] = 1.
+   
+   +bonusLetter(b),
+   +bonusLetter:name(b: "None"),
+   +bonusLetter:multiplier[b] = 1.
+</doc>
+exec <doc>
+   +space:bonusWord[space] = "None",
+   +space:bonusLetter[space] = "None"
+   <-
+      space(space).
+</doc>
+commit
+
+transaction
+exec <doc>
+   +bonusWord(b),
+   +bonusWord:name(b: name),
+   +bonusWord:display[b] = disp,
+   +bonusWord:multiplier[b] = multiplier,
+   ^space:bonusWord[space] = b
+   <-
+      space = space:coordinates[column, row],
+      (
+      (row =  0, column =  4, multiplier = 2, name = "2W (  4,  0)", disp = "2W");
+      (row =  0, column = -4, multiplier = 2, name = "2W ( -4,  0)", disp = "2W");
+      (row =  2, column =  6, multiplier = 2, name = "2W (  6,  2)", disp = "2W");
+      (row =  2, column = -6, multiplier = 2, name = "2W ( -6,  2)", disp = "2W");
+      (row =  4, column =  0, multiplier = 2, name = "2W (  0,  4)", disp = "2W");
+      (row =  4, column =  7, multiplier = 3, name = "3W (  7,  4)", disp = "3W");
+      (row =  4, column = -7, multiplier = 3, name = "3W ( -7,  4)", disp = "3W");
+      (row =  6, column =  2, multiplier = 2, name = "2W (  2,  6)", disp = "2W");
+      (row =  6, column = -2, multiplier = 2, name = "2W ( -2,  6)", disp = "2W");
+      (row =  7, column =  4, multiplier = 3, name = "3W (  4,  7)", disp = "3W");
+      (row =  7, column = -4, multiplier = 3, name = "3W ( -4,  7)", disp = "3W");
+      (row = -2, column =  6, multiplier = 2, name = "2W (  6, -2)", disp = "2W");
+      (row = -2, column = -6, multiplier = 2, name = "2W ( -6, -2)", disp = "2W");
+      (row = -4, column =  0, multiplier = 2, name = "2W (  0, -4)", disp = "2W");
+      (row = -4, column =  7, multiplier = 3, name = "3W (  7, -4)", disp = "3W");
+      (row = -4, column = -7, multiplier = 3, name = "3W ( -7, -4)", disp = "3W");
+      (row = -6, column =  2, multiplier = 2, name = "2W (  2, -6)", disp = "2W");
+      (row = -6, column = -2, multiplier = 2, name = "2W ( -2, -6)", disp = "2W");
+      (row = -7, column =  4, multiplier = 3, name = "3W (  4, -7)", disp = "3W");
+      (row = -7, column = -4, multiplier = 3, name = "3W ( -4, -7)", disp = "3W")
+      ).
+
+   +bonusLetter(b),
+   +bonusLetter:name(b: name),
+   +bonusLetter:display[b] = disp,
+   +bonusLetter:multiplier[b] = multiplier,
+   ^space:bonusLetter[space] = b
+   <-
+      space =  space:coordinates[column, row],
+      (
+      (row = -7, column =  1, multiplier = 3, name = "3L ( -7,  1)", disp = "3L");
+      (row = -7, column = -1, multiplier = 3, name = "3L ( -7, -1)", disp = "3L");
+      (row = -6, column =  5, multiplier = 2, name = "2L ( -6,  5)", disp = "2L");
+      (row = -6, column = -5, multiplier = 2, name = "2L ( -6, -5)", disp = "2L");
+      (row = -5, column =  3, multiplier = 2, name = "2L ( -5,  3)", disp = "2L");
+      (row = -5, column = -6, multiplier = 2, name = "2L ( -5, -6)", disp = "2L");
+      (row = -5, column =  6, multiplier = 2, name = "2L ( -5,  6)", disp = "2L");
+      (row = -5, column = -3, multiplier = 2, name = "2L ( -5, -3)", disp = "2L");
+      (row = -4, column =  4, multiplier = 3, name = "3L ( -4,  4)", disp = "3L");
+      (row = -4, column = -4, multiplier = 3, name = "3L ( -4, -4)", disp = "3L");
+      (row = -3, column =  5, multiplier = 2, name = "2L ( -3,  5)", disp = "2L");
+      (row = -3, column =  1, multiplier = 2, name = "2L ( -3,  1)", disp = "2L");
+      (row = -3, column = -5, multiplier = 2, name = "2L ( -3, -5)", disp = "2L");
+      (row = -3, column = -1, multiplier = 2, name = "2L ( -3, -1)", disp = "2L");
+      (row = -2, column =  2, multiplier = 3, name = "3L ( -2,  2)", disp = "3L");
+      (row = -2, column = -2, multiplier = 3, name = "3L ( -2, -2)", disp = "3L");
+      (row = -1, column =  3, multiplier = 2, name = "2L ( -1,  3)", disp = "2L");
+      (row = -1, column = -7, multiplier = 3, name = "3L ( -1, -7)", disp = "3L");
+      (row = -1, column = -3, multiplier = 2, name = "2L ( -1, -3)", disp = "2L");
+      (row = -1, column =  7, multiplier = 3, name = "3L ( -1,  7)", disp = "3L");
+      (row =  1, column =  3, multiplier = 2, name = "2L (  1,  3)", disp = "2L");
+      (row =  1, column = -7, multiplier = 3, name = "3L (  1, -7)", disp = "3L");
+      (row =  1, column = -3, multiplier = 2, name = "2L (  1, -3)", disp = "2L");
+      (row =  1, column =  7, multiplier = 3, name = "3L (  1,  7)", disp = "3L");
+      (row =  2, column =  2, multiplier = 3, name = "3L (  2,  2)", disp = "3L");
+      (row =  2, column = -2, multiplier = 3, name = "3L (  2, -2)", disp = "3L");
+      (row =  3, column =  5, multiplier = 2, name = "2L (  3,  5)", disp = "2L");
+      (row =  3, column =  1, multiplier = 2, name = "2L (  3,  1)", disp = "2L");
+      (row =  3, column = -5, multiplier = 2, name = "2L (  3, -5)", disp = "2L");
+      (row =  3, column = -1, multiplier = 2, name = "2L (  3, -1)", disp = "2L");
+      (row =  4, column =  4, multiplier = 3, name = "3L (  4,  4)", disp = "3L");
+      (row =  4, column = -4, multiplier = 3, name = "3L (  4, -4)", disp = "3L");
+      (row =  5, column =  3, multiplier = 2, name = "2L (  5,  3)", disp = "2L");
+      (row =  5, column = -6, multiplier = 2, name = "2L (  5, -6)", disp = "2L");
+      (row =  5, column =  6, multiplier = 2, name = "2L (  5,  6)", disp = "2L");
+      (row =  5, column = -3, multiplier = 2, name = "2L (  5, -3)", disp = "2L");
+      (row =  6, column =  5, multiplier = 2, name = "2L (  6,  5)", disp = "2L");
+      (row =  6, column = -5, multiplier = 2, name = "2L (  6, -5)", disp = "2L");
+      (row =  7, column =  1, multiplier = 3, name = "3L (  7,  1)", disp = "3L");
+      (row =  7, column = -1, multiplier = 3, name = "3L (  7, -1)", disp = "3L")
+      ).
+   
+</doc>
+commit

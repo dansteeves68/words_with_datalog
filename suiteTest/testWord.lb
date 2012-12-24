@@ -1,0 +1,123 @@
+transaction
+addBlock --blockName testHelper <doc>
+   numLeadPlacementsHorizontal[] = num
+   <-
+      agg<<num = count()>>
+      leadPlacementHorizontal(_).
+   
+   numLeadPlacementsVertical[] = num
+   <-
+      agg<<num = count()>>
+      leadPlacementVertical(_).
+   
+   numWordsHorizontal[] = num
+   <-
+      agg<<num = count()>>
+      word:foo[_, "horizontal"] = _.
+   
+   numWordsVertical[] = num
+   <-
+      agg<<num = count()>>
+      word:foo[_, "vertical"] = _.
+</doc>
+commit
+
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test should start with first turn current"
+   <-
+      turn:first(first_turn),
+      currentTurn[] = other_turn,
+      first_turn != other_turn.
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test should start with no lead placements or words"
+   <-
+      numLeadPlacementsHorizontal[] != 0;
+      numLeadPlacementsVertical[] != 0;
+      numWordsHorizontal[] != 0;
+      numWordsVertical[] != 0.
+</doc>
+commit
+
+// put a word on the board
+
+transaction
+exec <doc>
+   // put down a word on the first space, "no"
+   +placement(p1),
+   +placement:foo[66, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[36, space2, turn] = p2
+   <-
+      space:coordinates[0, 0] = space1,
+      space:coordinates[1, 0] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test counts 1"
+   <-
+      numLeadPlacementsHorizontal[] != 1;
+      numLeadPlacementsVertical[] != 2;
+      numWordsHorizontal[] != 1;
+      numWordsVertical[] != 0.
+</doc>
+commit
+
+transaction
+exec <doc>
+   // put down another word
+   +placement(p1),
+   +placement:foo[3, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[98, space2, turn] = p2
+   <-
+      space:coordinates[0, -1] = space1,
+      space:coordinates[0, -2] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test counts 1"
+   <-
+      numLeadPlacementsHorizontal[] != 3;
+      numLeadPlacementsVertical[] != 2;
+      numWordsHorizontal[] != 1;
+      numWordsVertical[] != 1.
+</doc>
+commit
+
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Wrong words!"
+   <-
+      word:text[_] = str,
+      str != "no",
+      str != "new".
+
+   _foundNo[] = true
+   <-
+      word:text[_] = "no".
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Missing no!"
+   <-
+      _foundNo[] != true.
+
+   _foundNew[] = true
+   <-
+      word:text[_] = "new".
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Missing new!"
+   <-
+      _foundNew[] != true.
+</doc>
+commit

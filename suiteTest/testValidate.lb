@@ -1,0 +1,108 @@
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test should start with first turn current"
+   <-
+      turn:first(first_turn),
+      currentTurn[] = other_turn,
+      first_turn != other_turn.
+   
+   _numPlacements[] = num
+   <-
+      agg<<num = count()>>
+      placement(_).
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test should start with no placements"
+   <-
+      _numPlacements[] > 0.
+   
+   _numInvalidTurns[] = num
+   <-
+      agg<<num = count()>>
+      invalidTurn(_).
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Test should start with no invalid turn"
+   <-
+      _numInvalidTurns[] > 0.
+</doc>
+commit
+
+transaction
+exec <doc>
+   +validate[] = currentTurn[].
+</doc>
+commit
+
+// query showRow
+// query invalidTurnReasons
+
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Expect invalid turn"
+   <-
+      !invalidTurn(turn),
+      currentTurn[] = turn.
+   
+   _numInvalidReasons[] = num
+   <-
+      agg<<num = count()>>
+      invalidTurnReasons(turn, _),
+      currentTurn[] = turn.
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Expect 2 reasons"
+   <-
+      _numInvalidReasons[] != 3.
+</doc>
+commit
+
+transaction
+exec <doc>
+   // put down a word on the first space, "no"
+   +placement(p1),
+   +placement:foo[66, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[36, space2, turn] = p2
+   <-
+      space:coordinates[0, 0] = space1,
+      space:coordinates[1, 0] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +clear[] = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +validate[] = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Expect valid turn"
+   <-
+      invalidTurn(turn),
+      turn:first(turn),
+      currentTurn[] = turn.
+   
+   _numInvalidReasons[] = num
+   <-
+      agg<<num = count()>>
+      invalidTurnReasons(turn, _),
+      currentTurn[] = turn.
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Expect no invalid reasons"
+   <-
+      _numInvalidReasons[] != 0.
+</doc>
+commit

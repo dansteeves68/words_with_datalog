@@ -1,0 +1,33 @@
+/***
+
+Need a new test to deal with this bug
+
+[root@localhost gamePlay]# ./placeTile.sh -t 52 -x 7 -y 7
+     -7|-6|-5|-4|-3|-2|-1|  |1 |2 |3 |4 |5 |6 |7 
+  7,   |  |  |3W|  |  |3L|  |3L|  |  |3W|  |  | r
+  6,   |  |2L|  |  |2W|  |  |  |2W|  |  |2L|  |  
+  5,   |2L|  |  |2L|  |  |  |  |  |2L|  |  |2L|  
+  4, 3W|  |  |3L|  |  |  |2W|  |  |  |3L|  |  |3W
+  3,   |  |2L|  |  |  |2L|  |2L|  |  |  |2L|  |  
+  2,   |2W|  |  |  |3L|  |  |  |3L|  |  |  |2W|  
+  1, 3L|  |  |  |2L|  |  |  |  |  |2L|  |  |  |3L
+  0,   |  |  |2W|  | h| o| g|  |  |  |2W|  |  |  
+  -1, 3L|  |  |  |2L| i|  |  |  |  |2L|  |  |  |3L
+  -2,   |2W|  |  |  | t|  |  |  |3L|  |  |  |2W|  
+  -3,   |  |2L|  |  |  |2L|  |2L|  |  |  |2L|  |  
+  -4, 3W|  |  |3L|  |  |  |2W|  |  |  |3L|  |  |3W
+  -5,   |2L|  |  |2L|  |  |  |  |  |2L|  |  |2L|  
+  -6,   |  |2L|  |  |2W|  |  |  |2W|  |  |2L|  |  
+  -7,   |  |  |3W|  |  |3L|  |3L|  |  |3W|  |  |  
+
+  Player: 1
+  97  ( w , 4 ) -85  ( y , 3 ) -80  ( h , 3 ) -75  ( u , 2 ) -5  ( e , 1 ) -1  ( blank , 0 ) 
+[root@localhost gamePlay]# ./accept.sh 
+[root@localhost gamePlay]# ./whoseTurnIsIt.sh 
+  Player 1's move. Turn is #2
+[root@localhost gamePlay]# ./validate.sh 
+If turn is invalid, here are the reasons: 
+  2, A turn must share at least one existing tile.
+  2, All new tiles must be placed in a straight line.
+
+***/

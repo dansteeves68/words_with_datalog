@@ -1,0 +1,727 @@
+//
+// Let's play Words With LogicBlox!
+//
+
+create --overwrite workspace --blocks bloxunit
+
+//
+// Letters and tiles
+//
+
+transaction
+addBlock --blockName letters_and_tiles <doc>
+   // There are 26 letters in the alphabet
+   // each has a points value when played
+   // There are 105 tiles, each with a letter,
+   // and two blank tiles
+   
+   // in my experience it will be easier if the letter is the ref mode
+   letter(x), letter:letter(x:y) -> string(y).
+   letter:value[x] = y -> letter(x), uint[32](y).
+   tile(x), tile:num(x:y) -> uint[32](y).
+   // each tile has a letter or a blank
+   tile:letter[x] = y -> tile(x), letter(y).
+   // all tiles start out in the bag
+   tile:inBag(t) -> tile(t).
+</doc>
+commit
+
+// Now let's seed the letters and tiles
+source _seed_letters_and_tiles.lb
+
+//
+// Players
+//
+
+transaction
+addBlock --blockName players <doc>
+   // We need two players to have a game
+   player(x), player:num(x:y) -> uint[32](y).
+   player(x), player:num(x:y) -> uint[32](y).
+   
+   // not sure yet if these will be useful, but like the looks of them
+   player1[] = p1 <- player:num(p1: 1).
+   player2[] = p2 <- player:num(p2: 2).
+</doc>
+exec <doc>
+   +player(1) <- .
+   +player(2) <- .
+</doc>
+commit
+
+//
+// Deal each player 7 tiles
+//
+
+transaction
+addBlock --blockName deal <doc>
+   player:tileInHand(p, t) -> player(p), tile(t).
+   // need a constraint that a tile can only be either in the bag, in a hand,
+   // or played in a turn, never more than one
+   
+   // deal is our trigger to give a player a tile
+   deal[] = x -> player(x).
+   lang:pulse(`deal).
+   
+   dealtTile[p] = t -> player(p), tile(t).
+   lang:pulse(`dealtTile).
+   
+   +player:tileInHand(player, tile),
+   -tile:inBag(tile)
+   <-
+      +dealtTile[player] = tile.
+   
+   +dealtTile[player] = t
+   <-
+      choice<<t = any(tile)>>
+      tile:inBag@prev(tile),
+      +deal[] = player.
+</doc>
+commit
+
+//
+// Oh, Crap! We need a board to play tiles on...
+//
+
+transaction
+addBlock --blockName board <doc>
+   // The game board is 15 x 15, we're going to index it -7 thru 7 on each
+   // axis
+   row(x), row:index(x:y) -> int[32](y).
+   column(x), column:index(x:y) -> int[32](y).
+   
+   // spaces will be an entity identified by the skolem (x,y) coordinates
+   space(x) -> .
+   lang:physical:storageModel[`space] = "ScalableSparse".
+   space:coordinates[x,y] = s -> column(x), row(y), space(s).
+   lang:skolem(`space:coordinates).
+   
+   // these rules facilitate seeding the board
+   space(s),
+   space:coordinates[x,y] = s
+   <-
+      boardCoordinates(x,y).
+   boardCoordinates(x,y) -> column(x), row(y).
+   boardCoordinates(x,y) <- column(x), row(y).
+</doc>
+exec <doc>
+   +row(r),
+   +row:index(r:index)
+   <-
+      int32:range(7,-7,-1,index).
+   +column(c),
+   +column:index(c:index)
+   <-
+      int32:range(-7,7,1,index).
+</doc>
+addBlock --blockName bonus <doc>
+   bonusLetter(x), bonusLetter:name(x:y) -> string(y).
+   bonusLetter:multiplier[x] = y -> bonusLetter(x), uint[32](y).
+   space:bonusLetter[s] = z -> space(s), bonusLetter(z).
+   bonusLetter:display[bonus] = str -> bonusLetter(bonus), string(str).
+   
+   bonusWord(x), bonusWord:name(x:y) -> string(y).
+   bonusWord:multiplier[x] = y -> bonusWord(x), uint[32](y).
+   space:bonusWord[s] = z -> space(s), bonusWord(z).
+   bonusWord:display[bonus] = str -> bonusWord(bonus), string(str).
+</doc>
+commit
+source _seed_bonus.lb
+
+transaction
+addBlock --blockName gameplay <doc>
+   // players take turns
+   turn(x) -> .
+   lang:ordered(`turn).
+   turn:player[t] = p -> turn(t), player(p).
+   currentTurn[] = x -> turn(x).
+   
+   // placement is a tile on a space
+   placement(p) -> .
+   lang:physical:storageModel[`placement] = "ScalableSparse".
+   placement:foo[tile, space, turn] = p -> tile(tile), space(space), turn(turn), placement(p).
+   lang:skolem(`placement:foo).
+   
+   // a try is a set of placements to validate & score & accept or try again
+   try(tile, space) -> tile(tile), space(space).
+   lang:pulse(`try).
+   
+   +placement(placement),
+   +placement:foo[tile, space, turn] = placement,
+   -player:tileInHand(player, tile)
+   <-
+      +try(tile, space),
+      player:tileInHand@prev(player, tile),
+      turn:player[turn] = player,
+      turn = currentTurn[].
+</doc>
+exec <doc>
+   // Player 1 goes first to start the game
+   +turn(turn),
+   +turn:player[turn] = 1,
+   +currentTurn[] = turn.
+</doc>
+commit
+
+//
+// Can I see it?
+//
+
+transaction
+addBlock --blockName show_hand <doc>
+   //
+   // show hand
+   //
+   
+   showHand[player] = hand -> player(player), string(hand).
+   showHand[player] = hand
+   <-
+      agg<<hand = concat(delimiter, l)>>
+      l = id + " " + showLetter[letter],
+      id = uint32:string:convert[num],
+      tile:num(tile: num),
+      player:tileInHand(player, tile),
+      tile:letter[tile] = letter,
+      delimiter = "-".
+   
+   showLetter[letter] = l -> letter(letter), string(l).
+   showLetter[letter] = str
+   <-
+      str = " ( " + l + " , " + val_str + " ) ",
+      letter:letter(letter:l),
+      val_str = uint32:string:convert[val],
+      letter:value[letter] = val.
+</doc>
+commit
+
+transaction
+addBlock --blockName show_board <doc>
+   //
+   // conc spaces to show row
+   //
+   
+   showRow[row] = str -> row(row), string(str).
+   showRow[row] = str
+   <-
+      agg<< str = concat(delimiter, ss)>>
+      ss = space:display[space],
+      space:coordinates[_, row] = space,
+      delimiter = "|".
+   
+   //
+   // show spaces
+   //
+   
+   space:display[space] = str -> space(space), string(str).
+   space:display[space] = str
+   <-
+      (
+         // str is letter played
+         str = space:letterPlayedDisplay[space],
+         space:letterPlayed[space] = true
+      )
+      ;
+      (
+         // str is space:bonusDisplay
+         str = space:bonusDisplay[space],
+         !(space:letterPlayed[space] = true)
+      ).
+   
+   space:letterPlayed[space] = bool -> space(space), boolean(bool).
+   lang:defaultValue[`space:letterPlayed] = false.
+   space:letterPlayed[space] = true
+   <-
+      placement:foo[_, space, _] = _.
+   
+   space:letterPlayedDisplay[space] = str -> space(space), string(str).
+   space:letterPlayedDisplay[space] = str
+   <-
+      str = " " + letter,
+      placement:foo[tile, space, _] = _,
+      tile:letter[tile] = letter.
+   
+   space:bonusDisplay[space] = str -> space(space), string(str).
+   lang:defaultValue[`space:bonusDisplay] = "  ".
+   lang:disjoint(`space:bonusDisplay).
+   space:bonusDisplay[space] = str
+   <-
+      (
+         // letter bonus display
+         str = bonusLetter:display[bl],
+         space:bonusLetter[space] = bl
+      )
+      ;
+      (
+         // word bonus display
+         str = bonusWord:display[bw],
+         space:bonusWord[space] = bw
+      ).
+</doc>
+commit
+
+
+// echo "     -7|-6|-5|-4|-3|-2|-1|  |1 |2 |3 |4 |5 |6 |7"
+// query showRow
+// echo
+// echo "Player 1 has"
+// query '_foo[] = showHand[1].'
+// echo "Player 2 has"
+// query '_foo[] = showHand[2].'
+
+//
+// Load the dictionary
+//
+
+transaction
+addBlock --blockName dictionary <doc>
+   validWord(x), validWord:str(x:y) -> string(y).
+   lang:capacity[`validWord] = 1000000.
+   
+</doc>
+exec <doc>
+   lang:physical:filePath[`_file] = "enable2k.txt".
+   lang:physical:storageModel[`_file] = "DelimitedFile".
+   lang:physical:delimiter[`_file] = ",".
+   lang:physical:hasColumnNames[`_file] = false.
+   lang:physical:lineNumbers[`_file] = false.
+
+   _file(word) -> string(word).
+
+   +validWord(word)
+   <-
+       _file(word).
+</doc>
+commit
+
+//
+// Q: What is a word?
+// A: A word is any placement or continuous horizontal or vertical series
+// of placements.
+//
+
+transaction
+addBlock --blockName orientation <doc>
+   orientation(x), orientation:code(x: y) -> string(y).
+</doc>
+exec <doc>
+   +orientation("horizontal") <- .
+   +orientation("vertical") <- .
+</doc>
+commit
+
+
+transaction
+addBlock --blockName word <doc>
+   // helper for adjoining placements
+   adjoiningPlacements(p1, p2) -> placement(p1), placement(p2).
+   
+   adjoiningPlacements(p1, p2)
+   <-
+      p1 != p2,
+      (
+         (x1 = x2, (y1 - y2 = 1; y1 - y2 = -1));
+         (y1 = y2, (x1 - x2 = 1; x1 - x2 = -1))
+      ),
+      placement(p1),
+      placement:foo[_, space1, _] = p1,
+      space:coordinates[x1, y1] = space1,
+      placement(p2),
+      placement:foo[_, space2, _] = p2,
+      space:coordinates[x2, y2] = space2.
+   
+   //
+   // lead placements start words
+   //
+   
+   leadPlacement(p) -> placement(p).
+   
+   placementAheadHorizontal[p] = p_ -> placement(p), placement(p_).
+   placementAheadHorizontal[p] = p_
+   <-
+      x - x_ = 1,
+      column:index(c: x), column:index(c_: x_),
+      space:coordinates[c,  r] = s,
+      space:coordinates[c_, r] = s_,
+      placement:foo[_, s, _] = p,
+      placement:foo[_, s_, _] = p_,
+      adjoiningPlacements(p, p_).
+   
+   leadPlacementHorizontal(p) -> placement(p).
+   leadPlacementHorizontal(p)
+   <-
+      // any placement
+      placement(p),
+      !(placementAheadHorizontal[p] = _).
+   
+   placementAheadVertical[p] = p_ -> placement(p), placement(p_).
+   placementAheadVertical[p] = p_
+   <-
+      y - y_ = 1,
+      row:index(r: y), row:index(r_: y_),
+      space:coordinates[c, r ] = s,
+      space:coordinates[c, r_] = s_,
+      placement:foo[_, s, _] = p,
+      placement:foo[_, s_, _] = p_,
+      adjoiningPlacements(p, p_).
+   
+   leadPlacementVertical(p) -> placement(p).
+   leadPlacementVertical(p)
+   <-
+      // any placement
+      placement(p),
+      !(placementAheadVertical[p] = _).
+   
+   //
+   // define word as leading placement with trailing placement(s)
+   // 
+   // Note: I'm going to interpret this phrase in the rules:
+   // "first word must be placed so that 1 of the tiles"
+   // as requiring that the first word may not be a single letter
+   // due to the 's' on the end of 'tiles'.
+   //
+   
+   word(w) -> .
+   lang:physical:storageModel[`word] = "ScalableSparse".
+   
+   word:foo[p, o] = w -> placement(p), orientation(o), word(w).
+   lang:skolem(`word:foo).
+   // need a constraint here that placement in word:foo must be a lead
+   
+   word(word),
+   word:foo[placement, orientation] = word
+   <-
+      orientation = "horizontal",
+      leadPlacementHorizontal(placement),
+      placementAheadHorizontal[_] = placement.
+   
+   word(word),
+   word:foo[placement, orientation] = word
+   <-
+      orientation = "vertical",
+      leadPlacementVertical(placement),
+      placementAheadVertical[_] = placement.
+   
+   wordHorizontal:placement(w, p) -> word(w), placement(p).
+   wordHorizontal:placement(word, placement)
+   <-
+      (word:foo[placement, "horizontal"] = word,
+      leadPlacementHorizontal(placement),
+      placementAheadHorizontal[_] = placement);
+      (placementAheadHorizontal[placement] = placement_,
+      wordHorizontal:placement(word, placement_)).
+
+   wordVertical:placement(w, p) -> word(w), placement(p).
+   wordVertical:placement(word, placement)
+   <-
+      (word:foo[placement, "vertical"] = word,
+      leadPlacementVertical(placement),
+      placementAheadVertical[_] = placement);
+      (placementAheadVertical[placement] = placement_,
+      wordVertical:placement(word, placement_)).
+
+   word:placement(w, p) -> word(w), placement(p).
+   word:placement(word, placement)
+   <-
+      wordHorizontal:placement(word, placement)
+      ;
+      wordVertical:placement(word, placement).
+</doc>
+commit
+
+transaction
+addBlock --blockName word_tile_and_text <doc>
+   // letters in a word, spell the full word
+   wordHorizontal:text[word] = text -> word(word), string(text).
+   wordHorizontal:text[word] = text
+   <-
+      agg<<text = concat(delim, letter)>>
+      word:placement(word, placement),
+      placement:foo[tile, space, _] = placement,
+      tile:letter[tile] = l,
+      letter:letter(l: letter),
+      space:coordinates[x, _] = space,
+      word:foo[_, "horizontal"] = word,
+      int32:range(-7, 7, 1, x),
+      delim = "".
+
+   wordVertical:text[word] = text -> word(word), string(text).
+   wordVertical:text[word] = text
+   <-
+      agg<<text = concat(delim, letter)>>
+      word:placement(word, placement),
+      placement:foo[tile, space, _] = placement,
+      tile:letter[tile] = l,
+      letter:letter(l: letter),
+      space:coordinates[_, y] = space,
+      word:foo[_, "vertical"] = word,
+      int32:range(7, -7, -1, y),
+      delim = "".
+
+   word:text[word] = text -> word(word), string(text).
+   word:text[word] = text
+   <-
+      wordHorizontal:text[word] = text;
+      wordVertical:text[word] = text.
+</doc>
+commit
+
+
+//
+// Placement rules
+//
+
+transaction
+addBlock --blockName validate <doc>
+   // capture if a turn is not valid and why
+   invalidTurn(turn) -> turn(turn).
+   invalidTurnReasons(turn, reason) -> turn(turn), string(reason).
+   
+   validate[] = x -> turn(x).
+   lang:pulse(`validate).
+   
+   // clear out the old reasons each time we validate
+   clear[] = x -> turn(x).
+   lang:pulse(`clear).
+   
+   
+   -invalidTurn(turn),
+   -invalidTurnReasons(turn, reason)
+   <-
+      invalidTurn@prev(turn),
+      invalidTurnReasons@prev(turn, reason),
+      +clear[] = turn.
+   
+// - The first word must be placed so that 1 of the tiles is on the star in the
+//   center of the board.
+   
+   centerCoveredByTurn[] = t -> turn(t).
+   centerCoveredByTurn[] = turn
+   <-
+      placement:foo[_, space, turn] = _,
+      space:coordinates[0, 0] = space,
+      turn:first(turn).
+   
+   +invalidTurn(turn),
+   +invalidTurnReasons(turn, reason)
+   <-
+      !(centerCoveredByTurn[] = turn),
+      turn:first(turn),
+      +validate[] = turn,
+      reason = "The first word must be placed so that one of the tiles is " +
+               "on the center space.".
+   
+   turnIncludesPlacement[t] = bool -> turn(t), boolean(bool).
+   turnIncludesPlacement[t] = true
+   <-
+      placement:foo[_, _, t] = _,
+      turn(t).
+   
+   // must place at least one tile
+   +invalidTurn(turn),
+   +invalidTurnReasons(turn, reason)
+   <-
+      !(turnIncludesPlacement[turn] = true),
+      +validate[] = turn,
+      reason = "A turn must lay at least one tile.".
+   
+   // Every word following that must be placed so that at least 1 tile is 
+   // shared from an existing word on the board.
+   
+   // Note: not allowed to negate `turn:first()`, so this is needed...
+   currentTurnIsFirst[] = bool -> boolean(bool).
+   currentTurnIsFirst[] = false
+   <-
+      currentTurn[] != turn,
+      turn:first(turn).
+   
+   turnSharesPriorPlacement[t] = bool -> turn(t), boolean(bool).
+   turnSharesPriorPlacement[turn] = true
+   <-
+      placement:foo[_, _, turn] = placement,
+      placement:foo[_, _, turn_] = placement_,
+      turn != turn_,
+      placement != placement_,
+      word:placement(word, placement),
+      word:placement(word, placement_).
+   
+   +invalidTurn(turn),
+   +invalidTurnReasons(turn, reason)
+   <-
+      !(turnSharesPriorPlacement[turn] = true),
+      +validate[] = turn,
+      currentTurnIsFirst[] = false,
+      reason = "A turn must share at least one existing tile.".
+   
+   // Tiles can only be placed in the same line vertically or horizontally each
+   // turn.
+   
+   turnIsLinear[] = bool -> boolean(bool).
+   turnIsLinear[] = true
+   <-
+      placement:foo[_, space, turn] = p,
+      placement:foo[_, space_, turn] = p_,
+      p != p_,
+      turn = currentTurn[],
+      space:coordinates[x, y] = space,
+      space:coordinates[x_, y_] = space_,
+      space != space_,
+      (x = x_; y = y_).
+   
+   +invalidTurn(turn),
+   +invalidTurnReasons(turn, reason)
+   <-
+      !(turnIsLinear[] = true),
+      +validate[] = turn,
+      reason = "All new tiles must be placed in a straight line.".
+   
+   // Tiles can be placed so that multiple new words are formed simultaneously
+   // using neighboring letters.
+   //
+   // See rules for gathering word()
+
+   // Words cannot be placed if they create an illegal word using neighboring
+   // letters.
+   //
+   // See rules for gathering words, and dictionary validation below.
+   
+   // All words labelled as a part of speech (including those listed of foreign
+   // origin, and as archaic, obsolete, colloquial, slang, etc.) are permitted
+   // with the exception of the following: proper nouns (words always
+   // capitalized), abbreviations, prefixes and suffixes standing alone or words
+   // requiring a hyphen or an apostrophe.
+   
+   wordCreated(text) -> string(text).
+   wordCreated(text)
+   <-
+      word:placement(word, p),
+      word:text[word] = text,
+      turn = currentTurn[],
+      placement:foo[_, _, turn] = p.
+   
+   wordCreatedInDictionary[text] = bool -> string(text), boolean(bool).
+   wordCreatedInDictionary[text] = true
+   <-
+      wordCreated(text),
+      validWord(text).
+   
+   wordCreatedNotInDictionary(text) -> string(text).
+   wordCreatedNotInDictionary(text)
+   <-
+      wordCreated(text),
+      !(wordCreatedInDictionary[text] = _).
+   
+   listOfInvalidWords[] = str -> string(str).
+   listOfInvalidWords[] = str
+   <-
+      agg<<str = concat(delim, text)>>
+      wordCreatedNotInDictionary(text),
+      delim = ",".
+   
+   +invalidTurn(turn),
+   +invalidTurnReasons(turn, reason)
+   <-
+      +validate[] = turn,
+      reason = "Play creates words not in dictionary: " + str,
+      str = listOfInvalidWords[].
+</doc>
+commit
+
+transaction
+addBlock --blockName score <doc>
+   // turn:score[turn] = score -> turn(turn), uint[32](score).
+   // turn:score[turn] = score
+   // <-
+   //    agg<<score = total(word_score)>>
+   //    
+   // word:turn:score[word, turn] = score ->
+   // 
+   // 
+   // 
+   // placement:value[p, t] = val -> placement(p), turn(t) uint[32](val).
+   // placement:value[p, scored_turn] = val
+   // <-
+   //    placement:foo[tile, _, played_turn] = p,
+   //    tile:letter[tile] = l,
+   //    letter:value[l] = val.
+   // 
+   // 
+   // // Double the value of any tiles that were played this turn on a DL space, and
+   // // triple the value of any tile that was played on a TL space this turn.
+   // placement:bonusValue[p] = val -> placement(p), uint[32](val).
+   // placement:bonusValue[p] = val
+   // <-
+   //    placement:foo[tile, _, _] = p,
+   //    tile:letter[tile] = l,
+   //    letter:value[l] = val.
+   
+   // 
+   // Do not double the value of tiles on DL and TL spaces for tiles that were
+   // played on previous rounds.
+   // 
+   // Add up the values of all letters in the word, even if some were played on a
+   // previous turn.
+   // 
+   // Double the value of the word if any tiles this turn were played on a DW
+   // space (and double it again in the case were 2 DW spaces were played upon).
+   // 
+   // Triple the value of the word if any tiles this turn were played on a TW
+   // space (and triple it again if 2 TW spaces were used).
+   // 
+   // Do not multiply words if tiles on DW or TW spaces were used from a previous
+   // turn.
+   // 
+   // It is possible to create multiple words with the same play.
+   // 
+   // In this case, score each new word separately, including bonuses, and sum all
+   // of the new words together.
+   // 
+   // 35 bonus points are awarded whenever a player uses all 7 tiles on their rack
+   // in a single turn.
+   
+   
+</doc>
+commit
+
+close
+
+exit
+
+/***
+
+
+# Scoring: 
+
+   // 
+   // End Game: 
+   // 
+   // The game ends when one player plays every tile in his rack, and there are no
+   // tiles remaining to draw from.
+   // 
+   // The game could also end if three successive turns have occurred with no
+   // scoring and as long as the score is not zero-zero.
+   // 
+   // After the last tile is played, the opposing player will lose points equal to
+   // the sum of the value of his remaining tiles. This amount is then awarded to
+   // the player who placed the last tile.
+
+# Board #
+
+    in|-7|-6|-5|-4|-3|-2|-1|+0|+1|+2|+3|+4|+5|+6|+7
+    +7|  |  |  |TW|  |  |TL|  |TL|  |  |TW|  |  |
+    +6|  |  |DL|  |  |DW|  |  |  |DW|  |  |DL|  |
+    +5|  |DL|  |  |DL|  |  |  |  |  |DL|  |  |DL|
+    +4|TW|  |  |TL|  |  |  |DW|  |  |  |TL|  |  |TW
+    +3|  |  |DL|  |  |  |DL|  |DL|  |  |  |DL|  |
+    +2|  |DW|  |  |  |TL|  |  |  |TL|  |  |  |DW|
+    +1|TL|  |  |  |DL|  |  |  |  |  |DL|  |  |  |TL
+    +0|  |  |  |DW|  |  |  |ST|  |  |  |DW|  |  |
+    -1|TL|  |  |  |DL|  |  |  |  |  |DL|  |  |  |TL
+    -2|  |DW|  |  |  |TL|  |  |  |TL|  |  |  |DW|
+    -3|  |  |DL|  |  |  |DL|  |DL|  |  |  |DL|  |
+    -4|TW|  |  |TL|  |  |  |DW|  |  |  |TL|  |  |TW
+    -5|  |DL|  |  |DL|  |  |  |  |  |DL|  |  |DL|
+    -6|  |  |DL|  |  |DW|  |  |  |DW|  |  |DL|  |
+    -7|  |  |  |TW|  |  |TL|  |TL|  |  |TW|  |  |
+    
+
+***/

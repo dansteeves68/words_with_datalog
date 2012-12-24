@@ -1,0 +1,63 @@
+// play first turn "no"
+// then play second turn non-linear
+// assert fails 'non-linear' validation
+//        t
+//      n o t
+
+transaction
+exec <doc>
+   // put down a word on the first space, "no"
+   +placement(p1),
+   +placement:foo[66, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[36, space2, turn] = p2
+   <-
+      space:coordinates[0, 0] = space1,
+      space:coordinates[1, 0] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +turn(turn),
+   +turn:player[turn] = 2,
+   ^currentTurn[] = turn.
+</doc>
+commit
+
+transaction
+exec <doc>
+   // add disconnected word
+   +placement(p1),
+   +placement:foo[41, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[42, space2, turn] = p2
+   <-
+      space:coordinates[1, 1] = space1,
+      space:coordinates[2, 0] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +validate[] = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   _numInvalidReasons[] = num
+   <-
+      agg<<num = count()>>
+      invalidTurnReasons(turn, _),
+      currentTurn[] = turn.
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Expect one invalid reason"
+   <-
+      _numInvalidReasons[] != 1;
+      !(_numInvalidReasons[] = _).
+</doc>
+commit

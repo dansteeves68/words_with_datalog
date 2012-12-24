@@ -1,0 +1,7 @@
+transaction
+addBlock --blockName bug <doc>
+   foo(x) -> .
+   bar(x) -> .
+   foobar(x, y) -> foo(x), bar(z).
+</doc>
+commit

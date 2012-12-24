@@ -1,0 +1,62 @@
+// play first turn "no"
+// play second turn not in dictionary
+// assert fails 'shared tile' validation
+
+transaction
+exec <doc>
+   // put down a word on the first space, "no"
+   +placement(p1),
+   +placement:foo[66, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[36, space2, turn] = p2
+   <-
+      space:coordinates[0, 0] = space1,
+      space:coordinates[1, 0] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +turn(turn),
+   +turn:player[turn] = 2,
+   ^currentTurn[] = turn.
+</doc>
+commit
+
+transaction
+exec <doc>
+   // add disconnected word
+   +placement(p1),
+   +placement:foo[3, space1, turn] = p1,
+   +placement(p2),
+   +placement:foo[4, space2, turn] = p2
+   <-
+      space:coordinates[0, 2] = space1,
+      space:coordinates[0, 1] = space2,
+      turn = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   +validate[] = currentTurn[].
+</doc>
+commit
+
+transaction
+exec <doc>
+   _numInvalidReasons[] = num
+   <-
+      agg<<num = count()>>
+      invalidTurnReasons(turn, _),
+      currentTurn[] = turn.
+   
+   +system:bloxunit:Failure(f),
+   +system:bloxunit:failures[f] = "Expect one invalid reason"
+   <-
+      _numInvalidReasons[] != 1;
+      !(_numInvalidReasons[] = _).
+</doc>
+commit
+
